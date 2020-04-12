@@ -19,6 +19,12 @@ pub enum Day {
     Sunday,
 }
 
+/// Twelve months a year, roughly derived from the phases of the moon, and the
+/// seasons.
+///
+/// I'll add here that, a system of 13 months could work very nicely. Every
+/// month would have 28 days, and there would only be a single day left over,
+/// for new years.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Month {
     /// Janus, beginnings and endings.
@@ -50,9 +56,21 @@ pub enum Month {
     // the naming of the months to fruition.
 }
 
+/// The initial leap year (actually of 11 years).
+///
+/// This year marks the transition to the Gregorian calendar for the British
+/// Empire. Dates before this year aren't supported by this doomsday algorithm.
+pub const FIRST_LEAP_YEAR: usize = 1752;
+
 /// Behold the doomsday of a year.
 ///
-/// NOTE: Years before `FIRST_LEAP_YEAR` aren't supported.
+/// Every year has a single **doomsday**, for example `Doomsday(2020)` is
+/// `Saterday`. Additionally, each month has fixed day number for which
+/// doomsday lies, for example, in `April` doomsday is always on the 4th. Given
+/// these two peices of information, it's possible to quickly determain the day
+/// of any date.
+///
+/// Years before `FIRST_LEAP_YEAR` aren't supported.
 #[derive(Debug)]
 pub struct Doomsday(pub usize);
 
@@ -117,6 +135,7 @@ impl Doomsday {
     }
 }
 
+/// The display of doomsday is day, one for every week if you wish.
 impl fmt::Display for Doomsday {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self.day())
@@ -134,13 +153,7 @@ fn is_leap(year: usize) -> bool {
 }
 
 /// Number of leap years since (not including) 1752, the first leap year.
-///
-/// We don't include 1752, since it was the initial jump of 11 years; thus
-/// marking the transition to the Gregorian calendar for the British Empire.
-/// Therefor, dates before this year aren't supported by this doomsday
-/// algorithm.
 fn leaps(year: usize) -> usize {
-    const FIRST_LEAP_YEAR: usize = 1752;
     assert!(year >= FIRST_LEAP_YEAR);
 
     let offset = year - FIRST_LEAP_YEAR;
