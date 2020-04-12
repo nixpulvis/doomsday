@@ -1,26 +1,4 @@
-/// Return true for given years which are defined to be leap years, to help
-/// account for the fact there are not in fact a perfect 365 days in each year.
-/// Where, a _day_ is defined to be a complete rotation of the earth around
-/// it's axis (not to be confused with a _solar day_), and a _year_ is defined
-/// to be the time it takes the earth to complete a trip in it's orbit around
-/// the sun.
-pub fn is_leap(year: usize) -> bool {
-    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
-}
-
-/// Number of leap years since (not including) 1752, the first leap year.
-///
-/// We don't include 1752, since it was the initial jump of 11 years; thus
-/// marking the transition to the Gregorian calendar for the British Empire.
-/// Therefor, dates before this year aren't supported by this doomsday
-/// algorithm.
-pub fn leaps(year: usize) -> usize {
-    const FIRST_LEAP_YEAR: usize = 1752;
-    assert!(year >= FIRST_LEAP_YEAR);
-
-    let offset = year - FIRST_LEAP_YEAR;
-    (offset / 4) - (offset / 100) + (offset / 400)
-}
+use std::fmt;
 
 /// Seven days a week, derived from the celestial objects around us all.
 #[derive(Debug, Eq, PartialEq)]
@@ -75,26 +53,10 @@ pub enum Month {
 /// Behold the doomsday of a year.
 ///
 /// NOTE: Years before `FIRST_LEAP_YEAR` aren't supported.
+#[derive(Debug)]
 pub struct Doomsday(pub usize);
 
 impl Doomsday {
-    /// Return the **day of the week** which doomsday lies on in a given
-    /// year.
-    pub fn day(&self) -> Day {
-        use Day::*;
-
-        match (self.0 + leaps(self.0)) % 7 {
-            1 => Monday,
-            2 => Tuesday,
-            3 => Wednsday,
-            4 => Thursday,
-            5 => Friday,
-            6 => Saterday,
-            0 => Sunday,
-            _ => unreachable!(),
-        }
-    }
-
     /// Return the **day number** which doomsday lies on in a given month.
     ///
     /// This is the main utility of this crate. Notice how there are really
@@ -106,7 +68,7 @@ impl Doomsday {
     /// - 3 for three years, then 4 on the forth.
     ///
     /// These tricks are listed again below for each appropriate month.
-    pub fn day_number(&self, month: Month) -> usize {
+    pub fn first_of(&self, month: Month) -> usize {
         use Month::*;
 
         match month {
@@ -136,6 +98,53 @@ impl Doomsday {
             December => 12,
         }
     }
+
+    /// Return the **day of the week** which doomsday lies on in a given
+    /// year.
+    fn day(&self) -> Day {
+        use Day::*;
+
+        match (self.0 + leaps(self.0)) % 7 {
+            1 => Monday,
+            2 => Tuesday,
+            3 => Wednsday,
+            4 => Thursday,
+            5 => Friday,
+            6 => Saterday,
+            0 => Sunday,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl fmt::Display for Doomsday {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.day())
+    }
+}
+
+/// Return true for given years which are defined to be leap years, to help
+/// account for the fact there are not in fact a perfect 365 days in each year.
+/// Where, a _day_ is defined to be a complete rotation of the earth around
+/// it's axis (not to be confused with a _solar day_), and a _year_ is defined
+/// to be the time it takes the earth to complete a trip in it's orbit around
+/// the sun.
+fn is_leap(year: usize) -> bool {
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+}
+
+/// Number of leap years since (not including) 1752, the first leap year.
+///
+/// We don't include 1752, since it was the initial jump of 11 years; thus
+/// marking the transition to the Gregorian calendar for the British Empire.
+/// Therefor, dates before this year aren't supported by this doomsday
+/// algorithm.
+fn leaps(year: usize) -> usize {
+    const FIRST_LEAP_YEAR: usize = 1752;
+    assert!(year >= FIRST_LEAP_YEAR);
+
+    let offset = year - FIRST_LEAP_YEAR;
+    (offset / 4) - (offset / 100) + (offset / 400)
 }
 
 
@@ -143,45 +152,51 @@ impl Doomsday {
 mod tests {
     use super::*;
 
+    // Leap year functions.
+
     #[test]
     fn test_is_leap() {
         assert!(is_leap(1752));
         assert!(is_leap(1756));
-        assert!(is_leap(2000));
         assert!(is_leap(2020));
-
         assert!(!is_leap(1800));
         assert!(!is_leap(1900));
+        assert!(is_leap(2000));
     }
 
     #[test]
     fn test_leaps() {
-        assert_eq!(0, leaps(1752));
-        assert_eq!(1, leaps(1756));
+        assert_eq!(0,  leaps(1752));
+        assert_eq!(1,  leaps(1756));
+        assert_eq!(60, leaps(2000));
         assert_eq!(65, leaps(2020));
     }
 
+    // Doomsday functions.
+
     #[test]
     fn test_day() {
+        assert_eq!(Day::Tuesday,  Doomsday(1752).day());
+        assert_eq!(Day::Sunday,   Doomsday(1993).day());
         assert_eq!(Day::Saterday, Doomsday(2020).day());
     }
 
     #[test]
-    fn test_month() {
-        assert_eq!(3,  Doomsday(1993).day_number(Month::January));
-        assert_eq!(4,  Doomsday(2020).day_number(Month::January));
-        assert_eq!(28, Doomsday(1993).day_number(Month::February));
-        assert_eq!(29, Doomsday(2020).day_number(Month::February));
-        assert_eq!(0,  Doomsday(2000).day_number(Month::March));
-        assert_eq!(4,  Doomsday(2020).day_number(Month::April));
-        assert_eq!(9,  Doomsday(2020).day_number(Month::May));
-        assert_eq!(6,  Doomsday(2020).day_number(Month::June));
-        assert_eq!(11, Doomsday(2020).day_number(Month::July));
-        assert_eq!(8,  Doomsday(2020).day_number(Month::August));
-        assert_eq!(5,  Doomsday(2020).day_number(Month::September));
-        assert_eq!(10, Doomsday(2020).day_number(Month::October));
-        assert_eq!(7,  Doomsday(2020).day_number(Month::November));
-        assert_eq!(12, Doomsday(2020).day_number(Month::December));
+    fn test_first_of() {
+        assert_eq!(3,  Doomsday(1993).first_of(Month::January));
+        assert_eq!(4,  Doomsday(2020).first_of(Month::January));
+        assert_eq!(28, Doomsday(1993).first_of(Month::February));
+        assert_eq!(29, Doomsday(2020).first_of(Month::February));
+        assert_eq!(0,  Doomsday(2000).first_of(Month::March));
+        assert_eq!(4,  Doomsday(2020).first_of(Month::April));
+        assert_eq!(9,  Doomsday(2020).first_of(Month::May));
+        assert_eq!(6,  Doomsday(2020).first_of(Month::June));
+        assert_eq!(11, Doomsday(2020).first_of(Month::July));
+        assert_eq!(8,  Doomsday(2020).first_of(Month::August));
+        assert_eq!(5,  Doomsday(2020).first_of(Month::September));
+        assert_eq!(10, Doomsday(2020).first_of(Month::October));
+        assert_eq!(7,  Doomsday(2020).first_of(Month::November));
+        assert_eq!(12, Doomsday(2020).first_of(Month::December));
     }
 
 }
