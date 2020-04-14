@@ -19,6 +19,12 @@ pub enum Day {
     Sunday,
 }
 
+impl fmt::Display for Day {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 /// Twelve months a year, roughly derived from the phases of the moon, and the
 /// seasons.
 ///
@@ -74,8 +80,26 @@ pub const FIRST_LEAP_YEAR: usize = 1752;
 #[derive(Debug)]
 pub struct Doomsday(pub usize);
 
+/// TLFs (Two letter functions).
 impl Doomsday {
-    /// Return the **day number** which doomsday lies on in a given month.
+    #[inline]
+    pub fn on(&self) -> Day { self.day() }
+
+    /// Indicate the starting Doomsday for this month, in this year.
+    /// TODO: Format as 4th? 2nd?
+    #[inline]
+    pub fn of(&self, month: Month) -> usize { self.date(month) }
+}
+
+impl Doomsday {
+    /// Create a new doomsday for a given year.
+    /// TODO: Random or something?
+    #[inline]
+    pub fn new(year: usize) -> Doomsday {
+        Doomsday(year)
+    }
+
+    /// Return the **day number**, (we'll call a date) which doomsday lies on in a given month.
     ///
     /// This is the main utility of this crate. Notice how there are really
     /// only a few mnemonics to memorize here:
@@ -86,7 +110,7 @@ impl Doomsday {
     /// - 3 for three years, then 4 on the forth.
     ///
     /// These tricks are listed again below for each appropriate month.
-    pub fn first_of(&self, month: Month) -> usize {
+    pub fn date(&self, month: Month) -> usize {
         use Month::*;
 
         match month {
@@ -119,10 +143,10 @@ impl Doomsday {
 
     /// Return the **day of the week** which doomsday lies on in a given
     /// year.
-    fn day(&self) -> Day {
+    pub fn day(&self) -> Day {
         use Day::*;
 
-        match (self.0 + leaps(self.0)) % 7 {
+        match (self.0+ leaps(self.0)) % 7 {
             1 => Monday,
             2 => Tuesday,
             3 => Wednsday,
@@ -138,7 +162,7 @@ impl Doomsday {
 /// The display of doomsday is day, one for every week if you wish.
 impl fmt::Display for Doomsday {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.day())
+        write!(f, "{}", self.day())
     }
 }
 
@@ -195,21 +219,21 @@ mod tests {
     }
 
     #[test]
-    fn test_first_of() {
-        assert_eq!(3,  Doomsday(1993).first_of(Month::January));
-        assert_eq!(4,  Doomsday(2020).first_of(Month::January));
-        assert_eq!(28, Doomsday(1993).first_of(Month::February));
-        assert_eq!(29, Doomsday(2020).first_of(Month::February));
-        assert_eq!(0,  Doomsday(2000).first_of(Month::March));
-        assert_eq!(4,  Doomsday(2020).first_of(Month::April));
-        assert_eq!(9,  Doomsday(2020).first_of(Month::May));
-        assert_eq!(6,  Doomsday(2020).first_of(Month::June));
-        assert_eq!(11, Doomsday(2020).first_of(Month::July));
-        assert_eq!(8,  Doomsday(2020).first_of(Month::August));
-        assert_eq!(5,  Doomsday(2020).first_of(Month::September));
-        assert_eq!(10, Doomsday(2020).first_of(Month::October));
-        assert_eq!(7,  Doomsday(2020).first_of(Month::November));
-        assert_eq!(12, Doomsday(2020).first_of(Month::December));
+    fn test_date() {
+        assert_eq!(3,  Doomsday(1993).date(Month::January));
+        assert_eq!(4,  Doomsday(2020).date(Month::January));
+        assert_eq!(28, Doomsday(1993).date(Month::February));
+        assert_eq!(29, Doomsday(2020).date(Month::February));
+        assert_eq!(0,  Doomsday(2000).date(Month::March));
+        assert_eq!(4,  Doomsday(2020).date(Month::April));
+        assert_eq!(9,  Doomsday(2020).date(Month::May));
+        assert_eq!(6,  Doomsday(2020).date(Month::June));
+        assert_eq!(11, Doomsday(2020).date(Month::July));
+        assert_eq!(8,  Doomsday(2020).date(Month::August));
+        assert_eq!(5,  Doomsday(2020).date(Month::September));
+        assert_eq!(10, Doomsday(2020).date(Month::October));
+        assert_eq!(7,  Doomsday(2020).date(Month::November));
+        assert_eq!(12, Doomsday(2020).date(Month::December));
     }
 
 }
