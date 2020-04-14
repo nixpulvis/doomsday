@@ -1,5 +1,8 @@
 use std::fmt;
 
+pub use Day::*;
+pub use Month::*;
+
 /// Seven days a week, derived from the celestial objects around us all.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Day {
@@ -14,7 +17,7 @@ pub enum Day {
     /// Venus
     Friday,
     /// Saturn
-    Saterday,
+    Saturday,
     /// Sol (the sun itself)
     Sunday,
 }
@@ -71,7 +74,7 @@ pub const FIRST_LEAP_YEAR: usize = 1752;
 /// Behold the doomsday of a year.
 ///
 /// Every year has a single **doomsday**, for example `Doomsday(2020)` is
-/// `Saterday`. Additionally, each month has fixed day number for which
+/// `Saturday`. Additionally, each month has fixed day number for which
 /// doomsday lies, for example, in `April` doomsday is always on the 4th. Given
 /// these two peices of information, it's possible to quickly determain the day
 /// of any date.
@@ -85,7 +88,7 @@ impl Doomsday {
     #[inline]
     pub fn on(&self) -> Day { self.day() }
 
-    /// Indicate the starting Doomsday for this month, in this year.
+    /// Indicate the starting doomsday for this month, in this year.
     /// TODO: Format as 4th? 2nd?
     #[inline]
     pub fn of(&self, month: Month) -> usize { self.date(month) }
@@ -99,7 +102,7 @@ impl Doomsday {
         Doomsday(year)
     }
 
-    /// Return the **day number**, (we'll call a date) which doomsday lies on in a given month.
+    /// Return the **day number**, (we'll call a date) of the first doomsday in a given month.
     ///
     /// This is the main utility of this crate. Notice how there are really
     /// only a few mnemonics to memorize here:
@@ -111,8 +114,6 @@ impl Doomsday {
     ///
     /// These tricks are listed again below for each appropriate month.
     pub fn date(&self, month: Month) -> usize {
-        use Month::*;
-
         match month {
             // 3 for three years, then 4 on the forth.
             January => if is_leap(self.0) { 4 } else { 3 },
@@ -144,18 +145,7 @@ impl Doomsday {
     /// Return the **day of the week** which doomsday lies on in a given
     /// year.
     pub fn day(&self) -> Day {
-        use Day::*;
-
-        match (self.0+ leaps(self.0)) % 7 {
-            1 => Monday,
-            2 => Tuesday,
-            3 => Wednsday,
-            4 => Thursday,
-            5 => Friday,
-            6 => Saterday,
-            0 => Sunday,
-            _ => unreachable!(),
-        }
+        day_from_anchor(self.0 + leaps(self.0))
     }
 }
 
@@ -163,6 +153,50 @@ impl Doomsday {
 impl fmt::Display for Doomsday {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.day())
+    }
+}
+
+/// Return the day of the week for a given year, month, day.
+///
+/// # Example
+///
+/// ```
+/// use doomsday::*;
+/// assert_eq!(Tuesday, day_of_the_week(2020, 04, 14));
+/// ```
+pub fn day_of_the_week(year: usize, month: usize, day: usize) -> Day {
+    let dd = Doomsday(year);
+    day_from_anchor(dd.day() as usize + dd.of(month_from_usize(month)) + day)
+}
+
+fn month_from_usize(date: usize) -> Month {
+    match date {
+        1  => January,
+        2  => February,
+        3  => March,
+        4  => April,
+        5  => May,
+        6  => June,
+        7  => July,
+        8  => August,
+        9  => September,
+        10 => October,
+        11 => November,
+        12 => December,
+        _ => unreachable!(),
+    }
+}
+
+fn day_from_anchor(anchor: usize) -> Day {
+    match anchor % 7 {
+        1 => Monday,
+        2 => Tuesday,
+        3 => Wednsday,
+        4 => Thursday,
+        5 => Friday,
+        6 => Saturday,
+        0 => Sunday,
+        _ => unreachable!(),
     }
 }
 
@@ -188,6 +222,23 @@ fn leaps(year: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Day of the week (the trick).
+
+    #[test]
+    fn test_day_of_the_week() {
+        assert_eq!(Friday, day_of_the_week(1937, 03, 26));
+        assert_eq!(Saturday, day_of_the_week(2020, 04, 11));
+    }
+
+    #[test]
+    fn test_day_from_anchor() {
+        assert_eq!(Sunday, day_from_anchor(0));
+        assert_eq!(Monday, day_from_anchor(1));
+        assert_eq!(Friday, day_from_anchor(5));
+        assert_eq!(Saturday, day_from_anchor(6));
+    }
+
 
     // Leap year functions.
 
@@ -215,7 +266,7 @@ mod tests {
     fn test_day() {
         assert_eq!(Day::Tuesday,  Doomsday(1752).day());
         assert_eq!(Day::Sunday,   Doomsday(1993).day());
-        assert_eq!(Day::Saterday, Doomsday(2020).day());
+        assert_eq!(Day::Saturday, Doomsday(2020).day());
     }
 
     #[test]
