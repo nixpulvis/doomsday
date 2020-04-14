@@ -3,3 +3,5 @@ name = "doomsday"
 version = "0.1.0"
 authors = ["Nathan Lilienthal <nathan@nixpulvis.com>"]
 edition = "2018"
+description = "An implementation of Conway's doomsday algorithm."
+license = "Beerware"
