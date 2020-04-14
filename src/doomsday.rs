@@ -13,17 +13,6 @@ use crate::*;
 #[derive(Debug)]
 pub struct Doomsday(pub usize);
 
-/// TLFs (Two letter functions).
-impl Doomsday {
-    #[inline]
-    pub fn on(&self) -> Day { self.day() }
-
-    /// Indicate the starting doomsday for this month, in this year.
-    /// TODO: Format as 4th? 2nd?
-    #[inline]
-    pub fn of(&self, month: Month) -> usize { self.date(month) }
-}
-
 impl Doomsday {
     /// Create a new doomsday for a given year.
     /// TODO: Random or something?
@@ -32,7 +21,7 @@ impl Doomsday {
         Doomsday(year)
     }
 
-    /// Return the **day number**, (we'll call a date) of the first doomsday in a given month.
+    /// Return the **day number**, of the anchor doomsday in a given month.
     ///
     /// This is the main utility of this crate. Notice how there are really
     /// only a few mnemonics to memorize here:
@@ -43,7 +32,9 @@ impl Doomsday {
     /// - 3 for three years, then 4 on the forth.
     ///
     /// These tricks are listed again below for each appropriate month.
-    pub fn date(&self, month: Month) -> usize {
+    //
+    // TODO: Formatting function. Would almost be trivial, if it wasn't for the 3rd.
+    pub fn anchor(&self, month: Month) -> usize {
         match month {
             // 3 for three years, then 4 on the forth.
             January => if is_leap(self.0) { 4 } else { 3 },
@@ -99,20 +90,20 @@ mod tests {
     }
 
     #[test]
-    fn test_date() {
-        assert_eq!(3,  Doomsday(1993).date(Month::January));
-        assert_eq!(4,  Doomsday(2020).date(Month::January));
-        assert_eq!(28, Doomsday(1993).date(Month::February));
-        assert_eq!(29, Doomsday(2020).date(Month::February));
-        assert_eq!(0,  Doomsday(2000).date(Month::March));
-        assert_eq!(4,  Doomsday(2020).date(Month::April));
-        assert_eq!(9,  Doomsday(2020).date(Month::May));
-        assert_eq!(6,  Doomsday(2020).date(Month::June));
-        assert_eq!(11, Doomsday(2020).date(Month::July));
-        assert_eq!(8,  Doomsday(2020).date(Month::August));
-        assert_eq!(5,  Doomsday(2020).date(Month::September));
-        assert_eq!(10, Doomsday(2020).date(Month::October));
-        assert_eq!(7,  Doomsday(2020).date(Month::November));
-        assert_eq!(12, Doomsday(2020).date(Month::December));
+    fn test_anchor() {
+        assert_eq!(3,  Doomsday(1993).anchor(Month::January));
+        assert_eq!(4,  Doomsday(2020).anchor(Month::January));
+        assert_eq!(28, Doomsday(1993).anchor(Month::February));
+        assert_eq!(29, Doomsday(2020).anchor(Month::February));
+        assert_eq!(0,  Doomsday(2000).anchor(Month::March));
+        assert_eq!(4,  Doomsday(2020).anchor(Month::April));
+        assert_eq!(9,  Doomsday(2020).anchor(Month::May));
+        assert_eq!(6,  Doomsday(2020).anchor(Month::June));
+        assert_eq!(11, Doomsday(2020).anchor(Month::July));
+        assert_eq!(8,  Doomsday(2020).anchor(Month::August));
+        assert_eq!(5,  Doomsday(2020).anchor(Month::September));
+        assert_eq!(10, Doomsday(2020).anchor(Month::October));
+        assert_eq!(7,  Doomsday(2020).anchor(Month::November));
+        assert_eq!(12, Doomsday(2020).anchor(Month::December));
     }
 }

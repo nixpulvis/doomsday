@@ -20,11 +20,11 @@ pub const FIRST_LEAP_YEAR: usize = 1752;
 ///
 /// ```
 /// use doomsday::*;
-/// assert_eq!(Tuesday, day_of_the_week(2020, 04, 14));
+/// assert_eq!(Tuesday, day_of_week(2020, 04, 14));
 /// ```
-pub fn day_of_the_week(year: usize, month: usize, day: usize) -> Day {
+pub fn day_of_week(year: usize, month: usize, day: usize) -> Day {
     let dd = Doomsday(year);
-    Day::from_anchor(dd.day() as usize + dd.of(Month::from(month)) + day)
+    Day::from_anchor(dd.day() as usize + dd.anchor(Month::from(month)) + day)
 }
 
 /// Return true for given years which are defined to be leap years.
@@ -55,9 +55,9 @@ mod tests {
     // Day of the week function (the main trick).
 
     #[test]
-    fn test_day_of_the_week() {
-        assert_eq!(Friday, day_of_the_week(1937, 03, 26));
-        assert_eq!(Saturday, day_of_the_week(2020, 04, 11));
+    fn test_day_of_week() {
+        assert_eq!(Friday, day_of_week(1937, 03, 26));
+        assert_eq!(Saturday, day_of_week(2020, 04, 11));
     }
 
     // Leap year functions (飛躍).
