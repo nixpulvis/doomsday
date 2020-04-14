@@ -11,7 +11,7 @@ pub enum Day {
     /// Mars
     Tuesday,
     /// Mercury
-    Wednsday,
+    Wednesday,
     /// Jupiter
     Thursday,
     /// Venus
